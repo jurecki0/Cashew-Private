@@ -907,10 +907,9 @@ getTotalSubscriptions(AllWallets allWallets, SelectedSubscriptionsType type,
   return total;
 }
 
-getTotalInvestments(AllWallets allWallets, SelectedInvestmentsType type,
-    List<Transaction>? investments) {
+double getTotalInvestments(
+    AllWallets allWallets, List<Transaction>? investments) {
   double total = 0;
-  DateTime today = DateTime.now();
   if (investments != null) {
     for (Transaction investment in investments) {
       investment = investment.copyWith(
@@ -918,51 +917,8 @@ getTotalInvestments(AllWallets allWallets, SelectedInvestmentsType type,
               (amountRatioToPrimaryCurrencyGivenPk(
                       allWallets, investment.walletFk) ??
                   0));
-      if (investment.type == TransactionSpecialType.upcoming) {
-        total += investment.amount;
-      } else if (investment.periodLength == 0) {
-        continue;
-      } else if (type == SelectedInvestmentsType.monthly) {
-        int numDays = DateTime(today.year, today.month + 1, 0).day;
-        double numWeeks = numDays / 7;
-        if (investment.reoccurrence == BudgetReoccurence.daily) {
-          total +=
-              investment.amount * numDays / (investment.periodLength ?? 1);
-        } else if (investment.reoccurrence == BudgetReoccurence.weekly) {
-          total +=
-              investment.amount * numWeeks / (investment.periodLength ?? 1);
-        } else if (investment.reoccurrence == BudgetReoccurence.monthly) {
-          total += investment.amount / (investment.periodLength ?? 1);
-        } else if (investment.reoccurrence == BudgetReoccurence.yearly) {
-          total += investment.amount / 12 / (investment.periodLength ?? 1);
-        }
-      } else if (type == SelectedInvestmentsType.yearly) {
-        DateTime firstDay = DateTime(today.year, 1, 1);
-        DateTime lastDay = DateTime(today.year + 1, 1, 1);
-        int numDays = lastDay.difference(firstDay).inDays;
-        double numWeeks = numDays / 7;
-        if (investment.reoccurrence == BudgetReoccurence.daily) {
-          total +=
-              investment.amount * numDays / (investment.periodLength ?? 1);
-        } else if (investment.reoccurrence == BudgetReoccurence.weekly) {
-          total +=
-              investment.amount * numWeeks / (investment.periodLength ?? 1);
-        } else if (investment.reoccurrence == BudgetReoccurence.monthly) {
-          total += investment.amount * 12 / (investment.periodLength ?? 1);
-        } else if (investment.reoccurrence == BudgetReoccurence.yearly) {
-          total += investment.amount / (investment.periodLength ?? 1);
-        }
-      } else if (type == SelectedInvestmentsType.total) {
-        if (investment.reoccurrence == BudgetReoccurence.daily) {
-          total += investment.amount;
-        } else if (investment.reoccurrence == BudgetReoccurence.weekly) {
-          total += investment.amount;
-        } else if (investment.reoccurrence == BudgetReoccurence.monthly) {
-          total += investment.amount;
-        } else if (investment.reoccurrence == BudgetReoccurence.yearly) {
-          total += investment.amount;
-        }
-      }
+      
+      total += investment.amount;
     }
   }
   return total;

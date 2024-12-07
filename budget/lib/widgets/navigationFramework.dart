@@ -73,6 +73,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_lazy_indexed_stack/flutter_lazy_indexed_stack.dart';
 import 'package:googleapis/drive/v3.dart';
 import 'package:provider/provider.dart';
+import 'package:budget/pages/investmentsPage.dart';
 // import 'package:feature_discovery/feature_discovery.dart';
 
 class PageNavigationFramework extends StatefulWidget {

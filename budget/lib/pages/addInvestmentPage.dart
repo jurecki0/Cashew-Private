@@ -1,5 +1,3 @@
-import 'package:budget/colors.dart';
-import 'package:budget/database/tables.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 
@@ -12,39 +10,18 @@ class AddInvestmentPage extends StatefulWidget {
   _AddInvestmentPageState createState() => _AddInvestmentPageState();
 }
 
-class HorizontalBreak extends StatelessWidget {
-  const HorizontalBreak(
-      {this.padding = const EdgeInsetsDirectional.symmetric(vertical: 10),
-      this.color,
-      super.key});
-  final EdgeInsetsDirectional padding;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: padding,
-      height: 2,
-      decoration: BoxDecoration(
-        color: color ?? getColor(context, "dividerColor"),
-        borderRadius: BorderRadiusDirectional.all(Radius.circular(15)),
-      ),
-    );
-  }
-}
-
 class _AddInvestmentPageState extends State<AddInvestmentPage> {
   InvestmentType? selectedInvestmentType;
   String? selectedSpecificInvestment;
   double? investmentPrice;
   double quantity = 0.0;
   double totalAmount = 0.0;
+  bool isFetchingPrice = false;
 
   final Map<InvestmentType, List<String>> investmentOptions = {
     InvestmentType.preciousMetals: ['Gold', 'Silver', 'Platinum'],
     InvestmentType.crypto: ['Bitcoin', 'Ethereum', 'Litecoin', 'Cardano'],
     InvestmentType.stocks: ['Apple', 'Tesla', 'Microsoft'],
-    // Add more types and specific investments as needed
   };
 
   @override
@@ -53,11 +30,15 @@ class _AddInvestmentPageState extends State<AddInvestmentPage> {
     selectedInvestmentType = widget.selectedInvestmentType;
   }
 
-  void fetchPrice(String investment) {
-    // Placeholder for API logic
-    // Mocking price fetch for now
+  Future<void> fetchPrice(String investment) async {
+    setState(() {
+      isFetchingPrice = true;
+    });
+    // Simulate a network call for fetching price
+    await Future.delayed(Duration(seconds: 1));
     setState(() {
       investmentPrice = 100.0; // Example static price
+      isFetchingPrice = false;
     });
   }
 
@@ -96,6 +77,7 @@ class _AddInvestmentPageState extends State<AddInvestmentPage> {
                   selectedInvestmentType = type;
                   selectedSpecificInvestment = null;
                   investmentPrice = null;
+                  totalAmount = 0.0;
                 });
               },
             ),
@@ -113,21 +95,37 @@ class _AddInvestmentPageState extends State<AddInvestmentPage> {
                   fetchPrice(item!);
                 },
               ),
-            if (investmentPrice != null) Text("price".tr() + ": \$${investmentPrice!.toStringAsFixed(2)}"),
+            if (isFetchingPrice)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+            if (investmentPrice != null && !isFetchingPrice)
+              Text("price".tr() + ": \$${investmentPrice!.toStringAsFixed(2)}"),
             SizedBox(height: 16),
             TextField(
               keyboardType: TextInputType.number,
               decoration: InputDecoration(labelText: "quantity".tr()),
               onChanged: (value) {
-                quantity = double.tryParse(value) ?? 0.0;
-                calculateTotal();
+                double? input = double.tryParse(value);
+                if (input != null && input >= 0) {
+                  quantity = input;
+                  calculateTotal();
+                } else {
+                  setState(() {
+                    quantity = 0.0;
+                    totalAmount = 0.0;
+                  });
+                }
               },
             ),
             SizedBox(height: 16),
             Text("total-amount".tr() + ": \$${totalAmount.toStringAsFixed(2)}"),
             Spacer(),
             ElevatedButton(
-              onPressed: addTransaction,
+              onPressed: (selectedSpecificInvestment != null && quantity > 0 && investmentPrice != null)
+                  ? addTransaction
+                  : null,
               child: Text("add-investment".tr()),
             ),
           ],
@@ -136,3 +134,5 @@ class _AddInvestmentPageState extends State<AddInvestmentPage> {
     );
   }
 }
+
+enum InvestmentType { preciousMetals, crypto, stocks }

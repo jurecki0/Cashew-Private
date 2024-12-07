@@ -76,12 +76,14 @@ dynamic transactionTypeDisplayToEnum = {
   "Upcoming": TransactionSpecialType.upcoming,
   "Subscription": TransactionSpecialType.subscription,
   "Repetitive": TransactionSpecialType.repetitive,
+  "Investment": TransactionSpecialType.investment,
   "Borrowed": TransactionSpecialType.debt,
   "Lent": TransactionSpecialType.credit,
   null: "Default",
   TransactionSpecialType.upcoming: "Upcoming",
   TransactionSpecialType.subscription: "Subscription",
   TransactionSpecialType.repetitive: "Repetitive",
+  TransactionSpecialType.investment: "Investment",
   TransactionSpecialType.debt: "Borrowed",
   TransactionSpecialType.credit: "Lent",
 };
@@ -155,6 +157,8 @@ class _AddTransactionPageState extends State<AddTransactionPage>
   String selectedWalletPk = appStateSettings["selectedWalletPk"];
   bool notesInputFocused = false;
   bool showMoreOptions = false;
+  String? selectedInvestmentCategory;
+  String? selectedInvestmentSubCategory;
   List<String> selectedExcludedBudgetPks = [];
   late bool isAddedToLoanObjective =
       widget.selectedObjective?.type == ObjectiveType.loan ||
@@ -251,6 +255,7 @@ class _AddTransactionPageState extends State<AddTransactionPage>
   void setSelectedType(String type) {
     setState(() {
       selectedType = transactionTypeDisplayToEnum[type];
+
       if (selectedType == TransactionSpecialType.credit) {
         selectedIncome = false;
       } else if (selectedType == TransactionSpecialType.debt) {
@@ -270,22 +275,20 @@ class _AddTransactionPageState extends State<AddTransactionPage>
         selectedPaid = false;
       }
 
-      if ((widget.transaction?.type != TransactionSpecialType.credit &&
-              selectedType == TransactionSpecialType.credit) ||
-          (widget.transaction?.type != TransactionSpecialType.debt &&
-              selectedType == TransactionSpecialType.debt)) {
-        selectedPaid = true;
-      }
-      if ((widget.transaction?.type != TransactionSpecialType.subscription &&
-              selectedType == TransactionSpecialType.subscription) ||
-          (widget.transaction?.type != TransactionSpecialType.repetitive &&
-              selectedType == TransactionSpecialType.repetitive) ||
-          (widget.transaction?.type != TransactionSpecialType.upcoming &&
-              selectedType == TransactionSpecialType.upcoming)) {
-        selectedPaid = false;
+      // Handle type-specific logic
+      if (widget.transaction?.type != selectedType) {
+        if (selectedType == TransactionSpecialType.credit ||
+            selectedType == TransactionSpecialType.debt) {
+          selectedPaid = true;
+        } else if (selectedType == TransactionSpecialType.investment) {
+          selectedPaid = false;
+        } else if (selectedType == TransactionSpecialType.subscription ||
+            selectedType == TransactionSpecialType.repetitive ||
+            selectedType == TransactionSpecialType.upcoming) {
+          selectedPaid = false;
+        }
       }
     });
-    return;
   }
 
   void setSelectedPayer(String payer) {
@@ -1354,6 +1357,71 @@ class _AddTransactionPageState extends State<AddTransactionPage>
                           ],
                         ),
                       ),
+                    ],
+                  ),
+                ),
+              ),
+              AnimatedExpanded(
+                expand: selectedType == TransactionSpecialType.investment,
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.only(bottom: 9),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: DropdownButton<String>(
+                          value: selectedInvestmentCategory,
+                          hint: Text('Select Investment Category'),
+                          isExpanded: true,
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'Crypto',
+                              child: Text('Crypto'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Stocks',
+                              child: Text('Stocks'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'ETF',
+                              child: Text('ETF'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Precious Metals',
+                              child: Text('Precious Metals'),
+                            ),
+                          ],
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              selectedInvestmentCategory = newValue ?? '';
+                            });
+                          },
+                        ),
+                      ),
+                      if (selectedInvestmentCategory == 'Precious Metals')
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: DropdownButton<String>(
+                            value: selectedInvestmentSubCategory,
+                            hint: Text('Select Precious Metal'),
+                            isExpanded: true,
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'Gold',
+                                child: Text('Gold'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'Silver',
+                                child: Text('Silver'),
+                              ),
+                            ],
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                selectedInvestmentSubCategory = newValue ?? '';
+                              });
+                            },
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -3566,12 +3634,8 @@ class SelectTransactionTypePopup extends StatelessWidget {
           transactionType: TransactionSpecialType.upcoming,
           title: "upcoming".tr(),
           childrenDescription: [
-            ListItem(
-              "upcoming-transaction-type-description-1".tr(),
-            ),
-            ListItem(
-              "upcoming-transaction-type-description-2".tr(),
-            ),
+            ListItem("upcoming-transaction-type-description-1".tr()),
+            ListItem("upcoming-transaction-type-description-2".tr()),
           ],
           onlyShowOneTransactionType: onlyShowOneTransactionType,
         ),
@@ -3582,16 +3646,9 @@ class SelectTransactionTypePopup extends StatelessWidget {
           transactionType: TransactionSpecialType.subscription,
           title: "subscription".tr(),
           childrenDescription: [
-            ListItem(
-              "subscription-transaction-type-description-1".tr(),
-            ),
-            ListItem(
-              "subscription-transaction-type-description-2".tr(),
-            ),
-            ListItem(
-              // Indicating the next one will be auto created when current marked as paid
-              "repetitive-transaction-type-description-3".tr(),
-            ),
+            ListItem("subscription-transaction-type-description-1".tr()),
+            ListItem("subscription-transaction-type-description-2".tr()),
+            ListItem("repetitive-transaction-type-description-3".tr()),
           ],
           onlyShowOneTransactionType: onlyShowOneTransactionType,
         ),
@@ -3602,16 +3659,9 @@ class SelectTransactionTypePopup extends StatelessWidget {
           transactionType: TransactionSpecialType.repetitive,
           title: "repetitive".tr(),
           childrenDescription: [
-            ListItem(
-              "repetitive-transaction-type-description-1".tr(),
-            ),
-            ListItem(
-              // Indicating the next one will be auto created when current marked as paid
-              "repetitive-transaction-type-description-2".tr(),
-            ),
-            ListItem(
-              "repetitive-transaction-type-description-3".tr(),
-            ),
+            ListItem("repetitive-transaction-type-description-1".tr()),
+            ListItem("repetitive-transaction-type-description-2".tr()),
+            ListItem("repetitive-transaction-type-description-3".tr()),
           ],
           onlyShowOneTransactionType: onlyShowOneTransactionType,
         ),
@@ -3622,12 +3672,8 @@ class SelectTransactionTypePopup extends StatelessWidget {
           transactionType: TransactionSpecialType.credit,
           title: "lent".tr(),
           childrenDescription: [
-            ListItem(
-              "lent-transaction-type-description-1".tr(),
-            ),
-            ListItem(
-              "lent-transaction-type-description-2".tr(),
-            ),
+            ListItem("lent-transaction-type-description-1".tr()),
+            ListItem("lent-transaction-type-description-2".tr()),
           ],
           onlyShowOneTransactionType: onlyShowOneTransactionType,
         ),
@@ -3638,12 +3684,21 @@ class SelectTransactionTypePopup extends StatelessWidget {
           transactionType: TransactionSpecialType.debt,
           title: "borrowed".tr(),
           childrenDescription: [
-            ListItem(
-              "borrowed-transaction-type-description-1".tr(),
-            ),
-            ListItem(
-              "borrowed-transaction-type-description-2".tr(),
-            ),
+            ListItem("borrowed-transaction-type-description-1".tr()),
+            ListItem("borrowed-transaction-type-description-2".tr()),
+          ],
+          onlyShowOneTransactionType: onlyShowOneTransactionType,
+        ),
+        // Added TransactionTypeInfoEntry for investments
+        TransactionTypeInfoEntry(
+          selectedTransactionType: selectedTransactionType,
+          setTransactionType: setTransactionType,
+          transactionTypesToShow: transactionTypesToShow,
+          transactionType: TransactionSpecialType.investment,
+          title: "investment".tr(),
+          childrenDescription: [
+            ListItem("investment-transaction-type-description-1".tr()),
+            ListItem("investment-transaction-type-description-2".tr()),
           ],
           onlyShowOneTransactionType: onlyShowOneTransactionType,
         ),
@@ -4814,34 +4869,43 @@ List<dynamic>
   List<dynamic> defaultList = [
     null,
     ...TransactionSpecialType.values,
-    //"installments"
   ];
-  if (isAddedToLoanObjective)
+
+  if (isAddedToLoanObjective) {
     return [
       null,
       TransactionSpecialType.upcoming,
       TransactionSpecialType.repetitive,
       TransactionSpecialType.subscription,
     ];
-  else if (transactionType == null)
+  } else if (transactionType == null) {
     return defaultList;
-  else if ([TransactionSpecialType.credit, TransactionSpecialType.debt]
-      .contains(transactionType))
-    return [TransactionSpecialType.credit, TransactionSpecialType.debt];
-  else if ([
+  } else if ([
+    TransactionSpecialType.credit,
+    TransactionSpecialType.debt,
+  ].contains(transactionType)) {
+    return [
+      TransactionSpecialType.credit,
+      TransactionSpecialType.debt,
+    ];
+  } else if ([
     TransactionSpecialType.subscription,
-  ].contains(transactionType))
+  ].contains(transactionType)) {
     return [TransactionSpecialType.subscription];
-  else if ([
+  } else if ([
     TransactionSpecialType.upcoming,
     TransactionSpecialType.repetitive,
     TransactionSpecialType.subscription,
-  ].contains(transactionType))
+    TransactionSpecialType.investment,
+  ].contains(transactionType)) {
     return [
       TransactionSpecialType.upcoming,
       TransactionSpecialType.repetitive,
-      TransactionSpecialType.subscription
+      TransactionSpecialType.subscription,
+      TransactionSpecialType.investment,
     ];
+  }
+
   return defaultList;
 }
 

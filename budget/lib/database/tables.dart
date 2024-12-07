@@ -21,6 +21,7 @@ import 'package:budget/struct/currencyFunctions.dart';
 import 'schema_versions.dart';
 import 'package:flutter/material.dart' show DateTimeRange;
 import 'package:budget/pages/activityPage.dart';
+import 'package:budget/database/shared_types.dart'; // Update with your file path
 
 import 'package:flutter/material.dart' show RangeValues;
 part 'tables.g.dart';
@@ -68,15 +69,6 @@ enum PaidStatus {
   paid,
   notPaid,
   skipped,
-}
-
-enum InvestmentType {
-  crypto,
-  stocks,
-  etf,
-  preciousMetals,
-  realEstate,
-  other,
 }
 
 // You should explain what each one does to the user in ViewBudgetTransactionFilterInfo
@@ -244,15 +236,16 @@ enum UpdateLogType {
 
 @DataClassName('Investment')
 class Investments extends Table {
-  TextColumn get investmentPk => text().clientDefault(() => uuid.v4())(); // Unique ID for each investment
-  TextColumn get name => text().withLength(max: NAME_LIMIT)(); // Investment name (e.g., stock ticker, crypto name)
-  IntColumn get type => intEnum<InvestmentType>()(); // Investment type (e.g., Crypto, Stocks, ETF)
-  RealColumn get quantity => real()(); // Quantity purchased
-  RealColumn get purchasePrice => real()(); // Price at purchase
-  RealColumn get currentPrice => real().nullable()(); // Current price (optional, can be fetched dynamically)
-  TextColumn get walletFk => text().references(Wallets, #walletPk).nullable()(); // Reference to a wallet, if applicable
-  DateTimeColumn get dateCreated => dateTime().clientDefault(() => DateTime.now())(); // Record creation date
-  DateTimeColumn get dateTimeModified => dateTime().nullable()(); // Last modification date
+  TextColumn get investmentPk => text().clientDefault(() => uuid.v4())();
+  TextColumn get name => text().withLength(max: NAME_LIMIT)();
+  IntColumn get type => intEnum<InvestmentType>()();
+  RealColumn get quantity => real()();
+  RealColumn get purchasePrice => real()();
+  RealColumn get currentPrice => real().nullable()();
+  TextColumn get walletFk => text().references(Wallets, #walletPk).nullable()();
+  DateTimeColumn get dateCreated =>
+      dateTime().clientDefault(() => DateTime.now())();
+  DateTimeColumn get dateTimeModified => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {investmentPk};
@@ -1823,18 +1816,17 @@ class FinanceDatabase extends _$FinanceDatabase {
     return (query.watch(), query.get());
   }
 
-// This gets all overdue investment records
-Stream<List<Investment>> getAllInvestments() {
-  final query = select(investments) // Ensure you reference the correct table
-    ..orderBy([(i) => OrderingTerm.asc(i.dateCreated)]) // Order by creation date
-    ..where(
-      (investment) =>
-        investment.currentPrice.isNotNull() & // Ensure the investment has a current price
-        investment.purchasePrice.isNotNull(), // Ensure it has a purchase price
-    );
-
-  return query.watch(); // Stream for real-time updates
-}
+  (Stream<List<Transaction>>, Future<List<Transaction>>) getAllInvestments() {
+    final query = select(transactions)
+      ..orderBy([(t) => OrderingTerm.asc(t.dateCreated)])
+      ..where(
+        (transaction) =>
+            transactions.paid.equals(false) &
+            transactions.type.equals(TransactionSpecialType.investment.index) &
+            transactions.skipPaid.equals(false),
+      );
+    return (query.watch(), query.get());
+  }
 
   // This gets all overdue upcoming transactions
   (Stream<List<Transaction>>, Future<List<Transaction>>)

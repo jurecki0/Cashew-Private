@@ -1,28 +1,29 @@
 import 'package:budget/colors.dart';
 import 'package:budget/database/tables.dart';
-import 'package:budget/pages/addInvestmentPage.dart';
+import 'package:budget/pages/addTransactionPage.dart';
 import 'package:budget/struct/databaseGlobal.dart';
 import 'package:budget/widgets/animatedExpanded.dart';
 import 'package:budget/widgets/dropdownSelect.dart';
-import 'package:budget/widgets/framework/popupFramework.dart';
-import 'package:budget/widgets/navigationSidebar.dart';
-import 'package:budget/widgets/openPopup.dart';
-import 'package:budget/widgets/selectedTransactionsAppBar.dart'; // Consider renaming this widget in future
-import 'package:budget/widgets/button.dart';
 import 'package:budget/widgets/fab.dart';
 import 'package:budget/widgets/fadeIn.dart';
+import 'package:budget/widgets/navigationSidebar.dart';
 import 'package:budget/widgets/noResults.dart';
-import 'package:budget/widgets/openBottomSheet.dart';
 import 'package:budget/widgets/framework/pageFramework.dart';
+import 'package:budget/widgets/openPopup.dart';
+import 'package:budget/widgets/selectedTransactionsAppBar.dart';
 import 'package:budget/widgets/settingsContainers.dart';
 import 'package:budget/widgets/textWidgets.dart';
-import 'package:budget/widgets/transactionEntry/transactionEntry.dart'; // Consider renaming this widget to InvestmentEntry
+import 'package:budget/widgets/transactionEntry/incomeAmountArrow.dart';
+import 'package:budget/widgets/transactionEntry/transactionEntry.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../functions.dart';
-import 'package:budget/struct/settings.dart';
 import 'package:budget/widgets/countNumber.dart';
+import 'package:budget/struct/settings.dart';
+import 'package:budget/widgets/openBottomSheet.dart';
+import 'package:budget/widgets/framework/popupFramework.dart';
+import 'package:budget/functions.dart';
+import 'package:budget/struct/settings.dart';
 
 class InvestmentsPage extends StatefulWidget {
   const InvestmentsPage({Key? key}) : super(key: key);
@@ -31,17 +32,8 @@ class InvestmentsPage extends StatefulWidget {
   State<InvestmentsPage> createState() => InvestmentsPageState();
 }
 
-enum SelectedInvestmentsType {
-  monthly,
-  yearly,
-  total,
-}
-
 class InvestmentsPageState extends State<InvestmentsPage> {
-  SelectedInvestmentsType selectedType = SelectedInvestmentsType
-      .values[appStateSettings["selectedInvestmentType"]];
   GlobalKey<PageFrameworkState> pageState = GlobalKey();
-  InvestmentType? selectedInvestmentType;
 
   void scrollToTop() {
     pageState.currentState?.scrollToTop();
@@ -65,8 +57,9 @@ class InvestmentsPageState extends State<InvestmentsPage> {
         floatingActionButton: AnimateFABDelayed(
           fab: AddFAB(
             tooltip: "add-investment".tr(),
-            openPage: AddInvestmentPage(
-              selectedInvestmentType: selectedInvestmentType, // Pass selected type
+            openPage: AddTransactionPage(
+              selectedType: TransactionSpecialType.investment,
+              routesToPopAfterDelete: RoutesToPopAfterDelete.None,
             ),
           ),
         ),
@@ -97,63 +90,43 @@ class InvestmentsPageState extends State<InvestmentsPage> {
           ),
         ],
         slivers: [
-          // Investment Type Dropdown
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: DropdownButton<InvestmentType>(
-                value: selectedInvestmentType,
-                hint: Text("select-investment-type".tr()),
-                onChanged: (InvestmentType? newType) {
-                  setState(() {
-                    selectedInvestmentType = newType;
-                  });
-                },
-                items: InvestmentType.values.map<DropdownMenuItem<InvestmentType>>(
-                  (InvestmentType value) {
-                    return DropdownMenuItem<InvestmentType>(
-                      value: value,
-                      child: Text(value.toString().split('.').last.tr()),
-                    );
-                  },
-                ).toList(),
-              ),
-            ),
+            child: TotalInvestmentHeader(),
           ),
-          StreamBuilder<List<Investment>>(
-            stream: database.getAllInvestments(),
+          StreamBuilder<List<Transaction>>(
+            stream: database.getAllInvestments().$1,
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 if (snapshot.data!.isEmpty) {
                   return SliverToBoxAdapter(
-                      child: NoResults(
-                          padding: const EdgeInsetsDirectional.only(
-                            top: 15,
-                            end: 30,
-                            start: 30,
-                          ),
-                          message: "no-investments".tr())); // Changed to "no-investments"
+                    child: NoResults(
+                      padding: const EdgeInsetsDirectional.only(
+                        top: 15,
+                        end: 30,
+                        start: 30,
+                      ),
+                      message: "no-investment-transactions".tr(),
+                    ),
+                  );
                 }
                 return SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (BuildContext context, int index) {
-                      Investment investment = snapshot.data![index];
+                      Transaction transaction = snapshot.data![index];
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           HorizontalBreak(
-                              padding: EdgeInsetsDirectional.only(
-                                  top: 4, bottom: 6)),
+                            padding:
+                                EdgeInsetsDirectional.only(top: 4, bottom: 6),
+                          ),
                           TransactionEntry(
-                            //aboveWidget: UpcomingInvestmentDateHeader( // Consider creating a new UpcomingInvestmentDateHeader widget
-                              selectedType: selectedType,
-                              transaction: transaction,
-                            //),
-                            openPage: AddInvestmentPage(
-                              //investment: investment,
-                              //routesToPopAfterDelete: RoutesToPopAfterDelete.One,
-                            ),
                             transaction: transaction,
+                            openPage: AddTransactionPage(
+                              transaction: transaction,
+                              routesToPopAfterDelete:
+                                  RoutesToPopAfterDelete.One,
+                            ),
                             listID: "Investments",
                           ),
                         ],
@@ -163,13 +136,13 @@ class InvestmentsPageState extends State<InvestmentsPage> {
                   ),
                 );
               } else {
-                return SliverToBoxAdapter();
+                return const SliverToBoxAdapter();
               }
             },
           ),
           SliverToBoxAdapter(child: SizedBox(height: 55)),
         ],
-        selectedTransactionsAppBar: SelectedTransactionsAppBar( // Consider renaming this widget to SelectedInvestmentsAppBar
+        selectedTransactionsAppBar: SelectedTransactionsAppBar(
           pageID: "Investments",
         ),
       ),
@@ -177,36 +150,69 @@ class InvestmentsPageState extends State<InvestmentsPage> {
   }
 }
 
-class InvestmentSettings extends StatelessWidget {
-  const InvestmentSettings({super.key});
+class TotalInvestmentHeader extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(
+          top: 30, start: 20, end: 20, bottom: 35),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          StreamBuilder<List<Transaction>>(
+            stream: database.getAllInvestments().$1,
+            builder: (context, snapshot) {
+              double total = getTotalInvestments(
+                Provider.of<AllWallets>(context),
+                snapshot.data,
+              );
+              return AmountWithColorAndArrow(
+                showIncomeArrow: true,
+                totalSpent: total,
+                fontSize: 30,
+                iconSize: 30,
+                iconWidth: 20,
+                textColor: getColor(context, "black"),
+              );
+            },
+          ),
+          Padding(
+            padding: EdgeInsetsDirectional.only(top: 5),
+            child: AnimatedSizeSwitcher(
+              child: TextFont(
+                text: "total-investments".tr(),
+                fontSize: 16,
+                maxLines: 2,
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
+class InvestmentSettings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        AutoPayInvestmentsSetting(),
-        //AutoPaySettingDescription(), // Uncomment if needed for investment settings
+        InvestmentSettingDescription(),
       ],
     );
   }
 }
 
-class AutoPayInvestmentsSetting extends StatelessWidget {
-  const AutoPayInvestmentsSetting({super.key});
-
+class InvestmentSettingDescription extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return SettingsContainerSwitch(
-      title: "pay-investments".tr(),
-      description: "pay-investments-description".tr(),
-      onSwitched: (value) async {
-        // Update setting for automatic investment payments
-        await updateSettings("automaticallyPayInvestments", value,
-            updateGlobalState: false);
-        //await setUpcomingNotifications(context); // Uncomment if applicable
-      },
-      initialValue: appStateSettings["automaticallyPayInvestments"],
-      icon: getTransactionTypeIcon(TransactionSpecialType.investment),
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Text(
+        "investment-settings-description".tr(),
+        textAlign: TextAlign.center,
+      ),
     );
   }
 }
