@@ -76,6 +76,9 @@ class _AddWalletPageState extends State<AddWalletPage> {
   String selectedCurrency =
       getDevicesDefaultCurrencyCode(); //if no currency selected use empty string
   int selectedDecimals = 2;
+  // Wallet Type Selector
+  List<String> walletTypes = ["Default Wallet", "Investment Wallet"];
+  String selectedWalletType = "Default Wallet"; // Default value
   FocusNode _titleFocusNode = FocusNode();
 
   void setSelectedTitle(String title) {
@@ -95,6 +98,14 @@ class _AddWalletPageState extends State<AddWalletPage> {
   void setSelectedCurrency(String currencyKey) {
     setState(() {
       selectedCurrency = currencyKey;
+    });
+    determineBottomButton();
+    return;
+  }
+
+  void setSelectedWalletType(String walletType) {
+    setState(() {
+      selectedWalletType = walletType;
     });
     determineBottomButton();
     return;
@@ -137,6 +148,7 @@ class _AddWalletPageState extends State<AddWalletPage> {
       homePageWidgetDisplay: widget.wallet != null
           ? widget.wallet!.homePageWidgetDisplay
           : defaultWalletHomePageWidgetDisplay,
+      walletType: selectedWalletType,
     );
   }
 
@@ -167,17 +179,25 @@ class _AddWalletPageState extends State<AddWalletPage> {
   void initState() {
     super.initState();
     if (widget.wallet != null) {
-      //We are editing a wallet
-      //Fill in the information from the passed in wallet
-      //Outside of future.delayed because of textinput when in web mode initial value
+      // We are editing a wallet
+      // Fill in the information from the passed-in wallet
       selectedTitle = widget.wallet!.name;
       selectedColor = widget.wallet!.colour == null
           ? null
           : HexColor(widget.wallet!.colour);
       selectedCurrency = widget.wallet!.currency ?? "usd";
       selectedDecimals = widget.wallet!.decimals;
+
+      // Set wallet type to existing value or default
+      selectedWalletType = widget.wallet!.walletType ?? "Default Wallet";
+    } else {
+      // For new wallets, set default type
+      selectedWalletType = "Default Wallet";
     }
+
     populateCurrencies();
+
+    // Delay any future calls (like creating the initial wallet object)
     Future.delayed(Duration.zero, () async {
       if (widget.runWhenOpen != null) widget.runWhenOpen!();
       walletInitial = await createTransactionWallet();
@@ -465,6 +485,46 @@ class _AddWalletPageState extends State<AddWalletPage> {
                   fontSize: 30,
                   fontWeight: FontWeight.bold,
                   topContentPadding: 20,
+                ),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsetsDirectional.symmetric(
+                    horizontal: 20, vertical: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextFont(
+                      text: "Wallet Type".tr(),
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    SizedBox(height: 8),
+                    Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        border:
+                            Border.all(color: Theme.of(context).dividerColor),
+                      ),
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        underline: SizedBox(),
+                        value: selectedWalletType,
+                        items: walletTypes.map((String type) {
+                          return DropdownMenuItem<String>(
+                            value: type,
+                            child: Text(type),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setSelectedWalletType(newValue!);
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

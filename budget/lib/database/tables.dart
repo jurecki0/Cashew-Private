@@ -26,7 +26,7 @@ import 'package:budget/database/shared_types.dart'; // Update with your file pat
 import 'package:flutter/material.dart' show RangeValues;
 part 'tables.g.dart';
 
-int schemaVersionGlobal = 46;
+int schemaVersionGlobal = 47;
 
 // To update and migrate the database, check the README
 
@@ -281,6 +281,8 @@ class Wallets extends Table {
       .nullable()
       .withDefault(const Constant(null))
       .map(const HomePageWidgetDisplayListInColumnConverter())();
+  TextColumn get walletType =>
+      text().nullable().withDefault(const Constant("Default Wallet"))();
 
   @override
   Set<Column> get primaryKey => {walletPk};
@@ -1173,6 +1175,39 @@ class FinanceDatabase extends _$FinanceDatabase {
                         e.toString());
               }
             },
+            from46To47: (m, schema) async {
+              print("46 to 47: Adding walletType column to wallets table");
+
+              try {
+                // Add the new walletType column
+                await m.addColumn(schema.wallets, schema.wallets.walletType);
+                print("Successfully added walletType column to wallets table.");
+              } catch (e) {
+                print("Migration Error: ${e.toString()}");
+              }
+
+              try {
+                // Fetch all existing wallets
+                List<TransactionWallet> allWallets = await getAllWallets();
+                List<TransactionWallet> walletsToUpdate = [];
+
+                // Update walletType for each wallet where it is null
+                for (TransactionWallet wallet in allWallets) {
+                  if (wallet.walletType == null) {
+                    walletsToUpdate.add(wallet.copyWith(
+                      walletType: Value("Default Wallet"),
+                    ));
+                  }
+                }
+
+                // Perform batch update
+                await updateBatchWalletsOnly(walletsToUpdate);
+                print("Successfully updated walletType to default values.");
+              } catch (e) {
+                print(
+                    "Migration Error: Error updating walletType defaults: ${e.toString()}");
+              }
+            },
           ),
         );
       },
@@ -1263,6 +1298,26 @@ class FinanceDatabase extends _$FinanceDatabase {
               print(
                   "Migration Error: Error upgrading objectives.walletFk to current wallet " +
                       e.toString());
+            }
+          }
+          if (details.versionBefore! < 47) {
+            // Migration 46to47: Ensure walletType has default value
+            print("Migration ensuring walletType has default values.");
+            try {
+              List<TransactionWallet> allWallets = await getAllWallets();
+              List<TransactionWallet> walletsToUpdate = [];
+              for (TransactionWallet wallet in allWallets) {
+                if (wallet.walletType == null) {
+                  walletsToUpdate.add(wallet.copyWith(
+                    walletType: Value("Default Wallet"),
+                  ));
+                }
+              }
+              await updateBatchWalletsOnly(walletsToUpdate);
+              print("Successfully ensured walletType defaults.");
+            } catch (e) {
+              print("Migration Error: Error ensuring walletType defaults: " +
+                  e.toString());
             }
           }
         }

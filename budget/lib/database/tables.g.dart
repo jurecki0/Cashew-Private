@@ -89,6 +89,14 @@ class $WalletsTable extends Wallets
           defaultValue: const Constant(null))
       .withConverter<List<HomePageWidgetDisplay>?>(
           $WalletsTable.$converterhomePageWidgetDisplayn);
+  static const VerificationMeta _walletTypeMeta =
+      const VerificationMeta('walletType');
+  @override
+  late final GeneratedColumn<String> walletType = GeneratedColumn<String>(
+      'wallet_type', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant("Default Wallet"));
   @override
   List<GeneratedColumn> get $columns => [
         walletPk,
@@ -101,7 +109,8 @@ class $WalletsTable extends Wallets
         currency,
         currencyFormat,
         decimals,
-        homePageWidgetDisplay
+        homePageWidgetDisplay,
+        walletType
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -165,6 +174,12 @@ class $WalletsTable extends Wallets
     }
     context.handle(
         _homePageWidgetDisplayMeta, const VerificationResult.success());
+    if (data.containsKey('wallet_type')) {
+      context.handle(
+          _walletTypeMeta,
+          walletType.isAcceptableOrUnknown(
+              data['wallet_type']!, _walletTypeMeta));
+    }
     return context;
   }
 
@@ -197,6 +212,8 @@ class $WalletsTable extends Wallets
       homePageWidgetDisplay: $WalletsTable.$converterhomePageWidgetDisplayn
           .fromSql(attachedDatabase.typeMapping.read(DriftSqlType.string,
               data['${effectivePrefix}home_page_widget_display'])),
+      walletType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}wallet_type']),
     );
   }
 
@@ -226,6 +243,7 @@ class TransactionWallet extends DataClass
   final String? currencyFormat;
   final int decimals;
   final List<HomePageWidgetDisplay>? homePageWidgetDisplay;
+  final String? walletType;
   const TransactionWallet(
       {required this.walletPk,
       required this.name,
@@ -237,7 +255,8 @@ class TransactionWallet extends DataClass
       this.currency,
       this.currencyFormat,
       required this.decimals,
-      this.homePageWidgetDisplay});
+      this.homePageWidgetDisplay,
+      this.walletType});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -266,6 +285,9 @@ class TransactionWallet extends DataClass
       map['home_page_widget_display'] =
           Variable<String>(converter.toSql(homePageWidgetDisplay));
     }
+    if (!nullToAbsent || walletType != null) {
+      map['wallet_type'] = Variable<String>(walletType);
+    }
     return map;
   }
 
@@ -293,6 +315,9 @@ class TransactionWallet extends DataClass
       homePageWidgetDisplay: homePageWidgetDisplay == null && nullToAbsent
           ? const Value.absent()
           : Value(homePageWidgetDisplay),
+      walletType: walletType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(walletType),
     );
   }
 
@@ -313,6 +338,7 @@ class TransactionWallet extends DataClass
       decimals: serializer.fromJson<int>(json['decimals']),
       homePageWidgetDisplay: serializer.fromJson<List<HomePageWidgetDisplay>?>(
           json['homePageWidgetDisplay']),
+      walletType: serializer.fromJson<String?>(json['walletType']),
     );
   }
   @override
@@ -331,6 +357,7 @@ class TransactionWallet extends DataClass
       'decimals': serializer.toJson<int>(decimals),
       'homePageWidgetDisplay': serializer
           .toJson<List<HomePageWidgetDisplay>?>(homePageWidgetDisplay),
+      'walletType': serializer.toJson<String?>(walletType),
     };
   }
 
@@ -346,7 +373,8 @@ class TransactionWallet extends DataClass
           Value<String?> currencyFormat = const Value.absent(),
           int? decimals,
           Value<List<HomePageWidgetDisplay>?> homePageWidgetDisplay =
-              const Value.absent()}) =>
+              const Value.absent(),
+          Value<String?> walletType = const Value.absent()}) =>
       TransactionWallet(
         walletPk: walletPk ?? this.walletPk,
         name: name ?? this.name,
@@ -364,6 +392,7 @@ class TransactionWallet extends DataClass
         homePageWidgetDisplay: homePageWidgetDisplay.present
             ? homePageWidgetDisplay.value
             : this.homePageWidgetDisplay,
+        walletType: walletType.present ? walletType.value : this.walletType,
       );
   @override
   String toString() {
@@ -378,7 +407,8 @@ class TransactionWallet extends DataClass
           ..write('currency: $currency, ')
           ..write('currencyFormat: $currencyFormat, ')
           ..write('decimals: $decimals, ')
-          ..write('homePageWidgetDisplay: $homePageWidgetDisplay')
+          ..write('homePageWidgetDisplay: $homePageWidgetDisplay, ')
+          ..write('walletType: $walletType')
           ..write(')'))
         .toString();
   }
@@ -395,7 +425,8 @@ class TransactionWallet extends DataClass
       currency,
       currencyFormat,
       decimals,
-      homePageWidgetDisplay);
+      homePageWidgetDisplay,
+      walletType);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -410,7 +441,8 @@ class TransactionWallet extends DataClass
           other.currency == this.currency &&
           other.currencyFormat == this.currencyFormat &&
           other.decimals == this.decimals &&
-          other.homePageWidgetDisplay == this.homePageWidgetDisplay);
+          other.homePageWidgetDisplay == this.homePageWidgetDisplay &&
+          other.walletType == this.walletType);
 }
 
 class WalletsCompanion extends UpdateCompanion<TransactionWallet> {
@@ -425,6 +457,7 @@ class WalletsCompanion extends UpdateCompanion<TransactionWallet> {
   final Value<String?> currencyFormat;
   final Value<int> decimals;
   final Value<List<HomePageWidgetDisplay>?> homePageWidgetDisplay;
+  final Value<String?> walletType;
   final Value<int> rowid;
   const WalletsCompanion({
     this.walletPk = const Value.absent(),
@@ -438,6 +471,7 @@ class WalletsCompanion extends UpdateCompanion<TransactionWallet> {
     this.currencyFormat = const Value.absent(),
     this.decimals = const Value.absent(),
     this.homePageWidgetDisplay = const Value.absent(),
+    this.walletType = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   WalletsCompanion.insert({
@@ -452,6 +486,7 @@ class WalletsCompanion extends UpdateCompanion<TransactionWallet> {
     this.currencyFormat = const Value.absent(),
     this.decimals = const Value.absent(),
     this.homePageWidgetDisplay = const Value.absent(),
+    this.walletType = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : name = Value(name),
         order = Value(order);
@@ -467,6 +502,7 @@ class WalletsCompanion extends UpdateCompanion<TransactionWallet> {
     Expression<String>? currencyFormat,
     Expression<int>? decimals,
     Expression<String>? homePageWidgetDisplay,
+    Expression<String>? walletType,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -482,6 +518,7 @@ class WalletsCompanion extends UpdateCompanion<TransactionWallet> {
       if (decimals != null) 'decimals': decimals,
       if (homePageWidgetDisplay != null)
         'home_page_widget_display': homePageWidgetDisplay,
+      if (walletType != null) 'wallet_type': walletType,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -498,6 +535,7 @@ class WalletsCompanion extends UpdateCompanion<TransactionWallet> {
       Value<String?>? currencyFormat,
       Value<int>? decimals,
       Value<List<HomePageWidgetDisplay>?>? homePageWidgetDisplay,
+      Value<String?>? walletType,
       Value<int>? rowid}) {
     return WalletsCompanion(
       walletPk: walletPk ?? this.walletPk,
@@ -512,6 +550,7 @@ class WalletsCompanion extends UpdateCompanion<TransactionWallet> {
       decimals: decimals ?? this.decimals,
       homePageWidgetDisplay:
           homePageWidgetDisplay ?? this.homePageWidgetDisplay,
+      walletType: walletType ?? this.walletType,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -555,6 +594,9 @@ class WalletsCompanion extends UpdateCompanion<TransactionWallet> {
       map['home_page_widget_display'] =
           Variable<String>(converter.toSql(homePageWidgetDisplay.value));
     }
+    if (walletType.present) {
+      map['wallet_type'] = Variable<String>(walletType.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -575,6 +617,7 @@ class WalletsCompanion extends UpdateCompanion<TransactionWallet> {
           ..write('currencyFormat: $currencyFormat, ')
           ..write('decimals: $decimals, ')
           ..write('homePageWidgetDisplay: $homePageWidgetDisplay, ')
+          ..write('walletType: $walletType, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -987,200 +1030,6 @@ class TransactionCategory extends DataClass
           other.dateTimeModified == this.dateTimeModified &&
           other.order == this.order &&
           other.income == this.income &&
-          other.methodAdded == this.methodAdded &&
-          other.mainCategoryPk == this.mainCategoryPk);
-}
-
-class InvestmentCategory extends DataClass
-    implements Insertable<InvestmentCategory> {
-  final String categoryPk;
-  final String name;
-  final String? colour;
-  final String? iconName;
-  final String? emojiIconName;
-  final DateTime dateCreated;
-  final DateTime? dateTimeModified;
-  final int order;
-  final MethodAdded? methodAdded;
-  final String? mainCategoryPk;
-
-  const InvestmentCategory({
-    required this.categoryPk,
-    required this.name,
-    this.colour,
-    this.iconName,
-    this.emojiIconName,
-    required this.dateCreated,
-    this.dateTimeModified,
-    required this.order,
-    this.methodAdded,
-    this.mainCategoryPk,
-  });
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['category_pk'] = Variable<String>(categoryPk);
-    map['name'] = Variable<String>(name);
-    if (!nullToAbsent || colour != null) {
-      map['colour'] = Variable<String>(colour);
-    }
-    if (!nullToAbsent || iconName != null) {
-      map['icon_name'] = Variable<String>(iconName);
-    }
-    if (!nullToAbsent || emojiIconName != null) {
-      map['emoji_icon_name'] = Variable<String>(emojiIconName);
-    }
-    map['date_created'] = Variable<DateTime>(dateCreated);
-    if (!nullToAbsent || dateTimeModified != null) {
-      map['date_time_modified'] = Variable<DateTime>(dateTimeModified);
-    }
-    map['order'] = Variable<int>(order);
-    if (!nullToAbsent || methodAdded != null) {
-      final converter = $CategoriesTable.$convertermethodAddedn;
-      map['method_added'] = Variable<int>(converter.toSql(methodAdded));
-    }
-    if (!nullToAbsent || mainCategoryPk != null) {
-      map['main_category_pk'] = Variable<String>(mainCategoryPk);
-    }
-    return map;
-  }
-
-  CategoriesCompanion toCompanion(bool nullToAbsent) {
-    return CategoriesCompanion(
-      categoryPk: Value(categoryPk),
-      name: Value(name),
-      colour:
-          colour == null && nullToAbsent ? const Value.absent() : Value(colour),
-      iconName: iconName == null && nullToAbsent
-          ? const Value.absent()
-          : Value(iconName),
-      emojiIconName: emojiIconName == null && nullToAbsent
-          ? const Value.absent()
-          : Value(emojiIconName),
-      dateCreated: Value(dateCreated),
-      dateTimeModified: dateTimeModified == null && nullToAbsent
-          ? const Value.absent()
-          : Value(dateTimeModified),
-      order: Value(order),
-      methodAdded: methodAdded == null && nullToAbsent
-          ? const Value.absent()
-          : Value(methodAdded),
-      mainCategoryPk: mainCategoryPk == null && nullToAbsent
-          ? const Value.absent()
-          : Value(mainCategoryPk),
-    );
-  }
-
-  factory InvestmentCategory.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return InvestmentCategory(
-      categoryPk: serializer.fromJson<String>(json['categoryPk']),
-      name: serializer.fromJson<String>(json['name']),
-      colour: serializer.fromJson<String?>(json['colour']),
-      iconName: serializer.fromJson<String?>(json['iconName']),
-      emojiIconName: serializer.fromJson<String?>(json['emojiIconName']),
-      dateCreated: serializer.fromJson<DateTime>(json['dateCreated']),
-      dateTimeModified:
-          serializer.fromJson<DateTime?>(json['dateTimeModified']),
-      order: serializer.fromJson<int>(json['order']),
-      methodAdded: $CategoriesTable.$convertermethodAddedn
-          .fromJson(serializer.fromJson<int?>(json['methodAdded'])),
-      mainCategoryPk: serializer.fromJson<String?>(json['mainCategoryPk']),
-    );
-  }
-
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'categoryPk': serializer.toJson<String>(categoryPk),
-      'name': serializer.toJson<String>(name),
-      'colour': serializer.toJson<String?>(colour),
-      'iconName': serializer.toJson<String?>(iconName),
-      'emojiIconName': serializer.toJson<String?>(emojiIconName),
-      'dateCreated': serializer.toJson<DateTime>(dateCreated),
-      'dateTimeModified': serializer.toJson<DateTime?>(dateTimeModified),
-      'order': serializer.toJson<int>(order),
-      'methodAdded': serializer.toJson<int?>(
-          $CategoriesTable.$convertermethodAddedn.toJson(methodAdded)),
-      'mainCategoryPk': serializer.toJson<String?>(mainCategoryPk),
-    };
-  }
-
-  InvestmentCategory copyWith({
-    String? categoryPk,
-    String? name,
-    Value<String?> colour = const Value.absent(),
-    Value<String?> iconName = const Value.absent(),
-    Value<String?> emojiIconName = const Value.absent(),
-    DateTime? dateCreated,
-    Value<DateTime?> dateTimeModified = const Value.absent(),
-    int? order,
-    Value<MethodAdded?> methodAdded = const Value.absent(),
-    Value<String?> mainCategoryPk = const Value.absent(),
-  }) =>
-      InvestmentCategory(
-        categoryPk: categoryPk ?? this.categoryPk,
-        name: name ?? this.name,
-        colour: colour.present ? colour.value : this.colour,
-        iconName: iconName.present ? iconName.value : this.iconName,
-        emojiIconName:
-            emojiIconName.present ? emojiIconName.value : this.emojiIconName,
-        dateCreated: dateCreated ?? this.dateCreated,
-        dateTimeModified: dateTimeModified.present
-            ? dateTimeModified.value
-            : this.dateTimeModified,
-        order: order ?? this.order,
-        methodAdded: methodAdded.present ? methodAdded.value : this.methodAdded,
-        mainCategoryPk:
-            mainCategoryPk.present ? mainCategoryPk.value : this.mainCategoryPk,
-      );
-
-  @override
-  String toString() {
-    return (StringBuffer('InvestmentCategory(')
-          ..write('categoryPk: $categoryPk, ')
-          ..write('name: $name, ')
-          ..write('colour: $colour, ')
-          ..write('iconName: $iconName, ')
-          ..write('emojiIconName: $emojiIconName, ')
-          ..write('dateCreated: $dateCreated, ')
-          ..write('dateTimeModified: $dateTimeModified, ')
-          ..write('order: $order, ')
-          ..write('methodAdded: $methodAdded, ')
-          ..write('mainCategoryPk: $mainCategoryPk')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(
-        categoryPk,
-        name,
-        colour,
-        iconName,
-        emojiIconName,
-        dateCreated,
-        dateTimeModified,
-        order,
-        methodAdded,
-        mainCategoryPk,
-      );
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is InvestmentCategory &&
-          other.categoryPk == this.categoryPk &&
-          other.name == this.name &&
-          other.colour == this.colour &&
-          other.iconName == this.iconName &&
-          other.emojiIconName == this.emojiIconName &&
-          other.dateCreated == this.dateCreated &&
-          other.dateTimeModified == this.dateTimeModified &&
-          other.order == this.order &&
           other.methodAdded == this.methodAdded &&
           other.mainCategoryPk == this.mainCategoryPk);
 }
@@ -3578,535 +3427,6 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
           ..write('objectiveLoanFk: $objectiveLoanFk, ')
           ..write('budgetFksExclude: $budgetFksExclude, ')
           ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class InvestmentTypeConverter extends TypeConverter<InvestmentType, int> {
-  const InvestmentTypeConverter();
-
-  @override
-  InvestmentType fromSql(int fromDb) {
-    // Converts an integer from the database into the corresponding InvestmentType enum value.
-    return InvestmentType.values[fromDb];
-  }
-
-  @override
-  int toSql(InvestmentType value) {
-    // Converts an InvestmentType enum value into its corresponding integer index.
-    return value.index;
-  }
-}
-
-class $InvestmentsTable extends Investments
-    with TableInfo<$InvestmentsTable, Investment> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $InvestmentsTable(this.attachedDatabase, [this._alias]);
-
-  static const VerificationMeta _investmentPkMeta =
-      const VerificationMeta('investmentPk');
-  @override
-  late final GeneratedColumn<String> investmentPk = GeneratedColumn<String>(
-    'investment_pk', aliasedName, false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    clientDefault: () => uuid.v4(), // This remains as UUID should be a String
-  );
-
-  static const VerificationMeta _nameMeta = const VerificationMeta('name');
-  @override
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-    'name',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-
-  static const VerificationMeta _typeMeta = const VerificationMeta('type');
-  @override
-  late final GeneratedColumnWithTypeConverter<InvestmentType, int> type =
-      GeneratedColumn<int>(
-    'type',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  ).withConverter<InvestmentType>($InvestmentsTable.$convertertype);
-
-  static const VerificationMeta _quantityMeta =
-      const VerificationMeta('quantity');
-  @override
-  late final GeneratedColumn<double> quantity = GeneratedColumn<double>(
-      'quantity', aliasedName, false,
-      type: DriftSqlType.double, requiredDuringInsert: true);
-
-  static const VerificationMeta _purchasePriceMeta =
-      const VerificationMeta('purchasePrice');
-  @override
-  late final GeneratedColumn<double> purchasePrice = GeneratedColumn<double>(
-      'purchase_price', aliasedName, false,
-      type: DriftSqlType.double, requiredDuringInsert: true);
-
-  static const VerificationMeta _currentPriceMeta =
-      const VerificationMeta('currentPrice');
-  @override
-  late final GeneratedColumn<double> currentPrice = GeneratedColumn<double>(
-      'current_price', aliasedName, true,
-      type: DriftSqlType.double, requiredDuringInsert: false);
-
-  static const VerificationMeta _walletFkMeta =
-      const VerificationMeta('walletFk');
-  @override
-  late final GeneratedColumn<String> walletFk = GeneratedColumn<String>(
-    'wallet_fk',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-
-  static const VerificationMeta _dateCreatedMeta =
-      const VerificationMeta('dateCreated');
-  @override
-  late final GeneratedColumn<DateTime> dateCreated = GeneratedColumn<DateTime>(
-      'date_created', aliasedName, false,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: false,
-      clientDefault: () => DateTime.now());
-
-  static const VerificationMeta _dateTimeModifiedMeta =
-      const VerificationMeta('dateTimeModified');
-  @override
-  late final GeneratedColumn<DateTime> dateTimeModified =
-      GeneratedColumn<DateTime>('date_time_modified', aliasedName, true,
-          type: DriftSqlType.dateTime, requiredDuringInsert: false);
-
-  @override
-  List<GeneratedColumn> get $columns => [
-        investmentPk,
-        name,
-        type,
-        quantity,
-        purchasePrice,
-        currentPrice,
-        walletFk,
-        dateCreated,
-        dateTimeModified
-      ];
-
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-
-  @override
-  String get actualTableName => $name;
-
-  static const String $name = 'investments';
-
-  @override
-  VerificationContext validateIntegrity(Insertable<Investment> instance,
-      {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('investment_pk')) {
-      context.handle(
-          _investmentPkMeta,
-          investmentPk.isAcceptableOrUnknown(
-              data['investment_pk']!, _investmentPkMeta));
-    }
-    if (data.containsKey('name')) {
-      context.handle(
-          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
-    } else if (isInserting) {
-      context.missing(_nameMeta);
-    }
-    if (data.containsKey('type')) {
-      context.handle(
-          _typeMeta, type.isAcceptableOrUnknown(data['type']!, _typeMeta));
-    } else if (isInserting) {
-      context.missing(_typeMeta);
-    }
-    if (data.containsKey('quantity')) {
-      context.handle(_quantityMeta,
-          quantity.isAcceptableOrUnknown(data['quantity']!, _quantityMeta));
-    } else if (isInserting) {
-      context.missing(_quantityMeta);
-    }
-    if (data.containsKey('purchase_price')) {
-      context.handle(
-          _purchasePriceMeta,
-          purchasePrice.isAcceptableOrUnknown(
-              data['purchase_price']!, _purchasePriceMeta));
-    } else if (isInserting) {
-      context.missing(_purchasePriceMeta);
-    }
-    if (data.containsKey('current_price')) {
-      context.handle(
-          _currentPriceMeta,
-          currentPrice.isAcceptableOrUnknown(
-              data['current_price']!, _currentPriceMeta));
-    }
-    if (data.containsKey('wallet_fk')) {
-      context.handle(_walletFkMeta,
-          walletFk.isAcceptableOrUnknown(data['wallet_fk']!, _walletFkMeta));
-    }
-    if (data.containsKey('date_created')) {
-      context.handle(
-          _dateCreatedMeta,
-          dateCreated.isAcceptableOrUnknown(
-              data['date_created']!, _dateCreatedMeta));
-    }
-    if (data.containsKey('date_time_modified')) {
-      context.handle(
-          _dateTimeModifiedMeta,
-          dateTimeModified.isAcceptableOrUnknown(
-              data['date_time_modified']!, _dateTimeModifiedMeta));
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {investmentPk};
-
-  @override
-  Investment map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Investment(
-      investmentPk: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}investment_pk'])!,
-      name: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-      type: $InvestmentsTable.$convertertypen.fromSql(attachedDatabase
-          .typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}type'])!)!,
-      quantity: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}quantity'])!,
-      purchasePrice: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}purchase_price'])!,
-      currentPrice: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}current_price']),
-      walletFk: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}wallet_fk']),
-      dateCreated: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}date_created'])!,
-      dateTimeModified: attachedDatabase.typeMapping.read(
-          DriftSqlType.dateTime, data['${effectivePrefix}date_time_modified']),
-    );
-  }
-
-  @override
-  $InvestmentsTable createAlias(String alias) {
-    return $InvestmentsTable(attachedDatabase, alias);
-  }
-
-  static JsonTypeConverter2<InvestmentType, int, int> $convertertype =
-      const EnumIndexConverter<InvestmentType>(InvestmentType.values);
-  static JsonTypeConverter2<InvestmentType?, int?, int?> $convertertypen =
-      JsonTypeConverter2.asNullable($convertertype);
-}
-
-class Investment extends DataClass implements Insertable<Investment> {
-  final String investmentPk;
-  final String name;
-  final InvestmentType type;
-  final double quantity;
-  final double purchasePrice;
-  final double? currentPrice;
-  final String? walletFk;
-  final DateTime dateCreated;
-  final DateTime? dateTimeModified;
-
-  const Investment({
-    required this.investmentPk,
-    required this.name,
-    required this.type,
-    required this.quantity,
-    required this.purchasePrice,
-    this.currentPrice,
-    this.walletFk,
-    required this.dateCreated,
-    this.dateTimeModified,
-  });
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['investment_pk'] = Variable<String>(investmentPk);
-    map['name'] = Variable<String>(name);
-    map['type'] = Variable<int>($InvestmentsTable.$convertertypen.toSql(type));
-    map['quantity'] = Variable<double>(quantity);
-    map['purchase_price'] = Variable<double>(purchasePrice);
-    if (!nullToAbsent || currentPrice != null) {
-      map['current_price'] = Variable<double>(currentPrice);
-    }
-    if (!nullToAbsent || walletFk != null) {
-      map['wallet_fk'] = Variable<String>(walletFk);
-    }
-    map['date_created'] = Variable<DateTime>(dateCreated);
-    if (!nullToAbsent || dateTimeModified != null) {
-      map['date_time_modified'] = Variable<DateTime>(dateTimeModified);
-    }
-    return map;
-  }
-
-  InvestmentsCompanion toCompanion(bool nullToAbsent) {
-    return InvestmentsCompanion(
-      investmentPk: Value(investmentPk),
-      name: Value(name),
-      type: Value(type),
-      quantity: Value(quantity),
-      purchasePrice: Value(purchasePrice),
-      currentPrice: currentPrice == null && nullToAbsent
-          ? const Value.absent()
-          : Value(currentPrice),
-      walletFk: walletFk == null && nullToAbsent
-          ? const Value.absent()
-          : Value(walletFk),
-      dateCreated: Value(dateCreated),
-      dateTimeModified: dateTimeModified == null && nullToAbsent
-          ? const Value.absent()
-          : Value(dateTimeModified),
-    );
-  }
-
-  factory Investment.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Investment(
-      investmentPk: serializer.fromJson<String>(json['investmentPk']),
-      name: serializer.fromJson<String>(json['name']),
-      type: $InvestmentsTable.$convertertypen
-          .fromJson(serializer.fromJson<int>(json['type']))!,
-      quantity: serializer.fromJson<double>(json['quantity']),
-      purchasePrice: serializer.fromJson<double>(json['purchasePrice']),
-      currentPrice: serializer.fromJson<double?>(json['currentPrice']),
-      walletFk: serializer.fromJson<String?>(json['walletFk']),
-      dateCreated: serializer.fromJson<DateTime>(json['dateCreated']),
-      dateTimeModified:
-          serializer.fromJson<DateTime?>(json['dateTimeModified']),
-    );
-  }
-
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'investmentPk': serializer.toJson<String>(investmentPk),
-      'name': serializer.toJson<String>(name),
-      'type': serializer
-          .toJson<int>($InvestmentsTable.$convertertypen.toJson(type)!),
-      'quantity': serializer.toJson<double>(quantity),
-      'purchasePrice': serializer.toJson<double>(purchasePrice),
-      'currentPrice': serializer.toJson<double?>(currentPrice),
-      'walletFk': serializer.toJson<String?>(walletFk),
-      'dateCreated': serializer.toJson<DateTime>(dateCreated),
-      'dateTimeModified': serializer.toJson<DateTime?>(dateTimeModified),
-    };
-  }
-
-  Investment copyWith({
-    String? investmentPk,
-    String? name,
-    InvestmentType? type,
-    double? quantity,
-    double? purchasePrice,
-    Value<double?> currentPrice = const Value.absent(),
-    Value<String?> walletFk = const Value.absent(),
-    DateTime? dateCreated,
-    Value<DateTime?> dateTimeModified = const Value.absent(),
-  }) =>
-      Investment(
-        investmentPk: investmentPk ?? this.investmentPk,
-        name: name ?? this.name,
-        type: type ?? this.type,
-        quantity: quantity ?? this.quantity,
-        purchasePrice: purchasePrice ?? this.purchasePrice,
-        currentPrice:
-            currentPrice.present ? currentPrice.value : this.currentPrice,
-        walletFk: walletFk.present ? walletFk.value : this.walletFk,
-        dateCreated: dateCreated ?? this.dateCreated,
-        dateTimeModified: dateTimeModified.present
-            ? dateTimeModified.value
-            : this.dateTimeModified,
-      );
-
-  @override
-  String toString() {
-    return (StringBuffer('Investment(')
-          ..write('investmentPk: $investmentPk, ')
-          ..write('name: $name, ')
-          ..write('type: $type, ')
-          ..write('quantity: $quantity, ')
-          ..write('purchasePrice: $purchasePrice, ')
-          ..write('currentPrice: $currentPrice, ')
-          ..write('walletFk: $walletFk, ')
-          ..write('dateCreated: $dateCreated, ')
-          ..write('dateTimeModified: $dateTimeModified')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hashAll([
-        investmentPk,
-        name,
-        type,
-        quantity,
-        purchasePrice,
-        currentPrice,
-        walletFk,
-        dateCreated,
-        dateTimeModified,
-      ]);
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is Investment &&
-          other.investmentPk == this.investmentPk &&
-          other.name == this.name &&
-          other.type == this.type &&
-          other.quantity == this.quantity &&
-          other.purchasePrice == this.purchasePrice &&
-          other.currentPrice == this.currentPrice &&
-          other.walletFk == this.walletFk &&
-          other.dateCreated == this.dateCreated &&
-          other.dateTimeModified == this.dateTimeModified);
-}
-
-class InvestmentsCompanion extends UpdateCompanion<Investment> {
-  final Value<String> investmentPk;
-  final Value<String> name;
-  final Value<InvestmentType> type;
-  final Value<double> quantity;
-  final Value<double> purchasePrice;
-  final Value<double?> currentPrice;
-  final Value<String?> walletFk;
-  final Value<DateTime> dateCreated;
-  final Value<DateTime?> dateTimeModified;
-  const InvestmentsCompanion({
-    this.investmentPk = const Value.absent(),
-    this.name = const Value.absent(),
-    this.type = const Value.absent(),
-    this.quantity = const Value.absent(),
-    this.purchasePrice = const Value.absent(),
-    this.currentPrice = const Value.absent(),
-    this.walletFk = const Value.absent(),
-    this.dateCreated = const Value.absent(),
-    this.dateTimeModified = const Value.absent(),
-  });
-  InvestmentsCompanion.insert({
-    this.investmentPk = const Value.absent(),
-    required String name,
-    required InvestmentType type,
-    required double quantity,
-    required double purchasePrice,
-    this.currentPrice = const Value.absent(),
-    this.walletFk = const Value.absent(),
-    this.dateCreated = const Value.absent(),
-    this.dateTimeModified = const Value.absent(),
-  })  : name = Value(name),
-        type = Value(type),
-        quantity = Value(quantity),
-        purchasePrice = Value(purchasePrice);
-
-  static Insertable<Investment> custom({
-    Expression<String>? investmentPk,
-    Expression<String>? name,
-    Expression<int>? type,
-    Expression<double>? quantity,
-    Expression<double>? purchasePrice,
-    Expression<double>? currentPrice,
-    Expression<String>? walletFk,
-    Expression<DateTime>? dateCreated,
-    Expression<DateTime>? dateTimeModified,
-  }) {
-    return RawValuesInsertable({
-      if (investmentPk != null) 'investment_pk': investmentPk,
-      if (name != null) 'name': name,
-      if (type != null) 'type': type,
-      if (quantity != null) 'quantity': quantity,
-      if (purchasePrice != null) 'purchase_price': purchasePrice,
-      if (currentPrice != null) 'current_price': currentPrice,
-      if (walletFk != null) 'wallet_fk': walletFk,
-      if (dateCreated != null) 'date_created': dateCreated,
-      if (dateTimeModified != null) 'date_time_modified': dateTimeModified,
-    });
-  }
-
-  InvestmentsCompanion copyWith({
-    Value<String>? investmentPk,
-    Value<String>? name,
-    Value<InvestmentType>? type,
-    Value<double>? quantity,
-    Value<double>? purchasePrice,
-    Value<double?>? currentPrice,
-    Value<String?>? walletFk,
-    Value<DateTime>? dateCreated,
-    Value<DateTime?>? dateTimeModified,
-  }) {
-    return InvestmentsCompanion(
-      investmentPk: investmentPk ?? this.investmentPk,
-      name: name ?? this.name,
-      type: type ?? this.type,
-      quantity: quantity ?? this.quantity,
-      purchasePrice: purchasePrice ?? this.purchasePrice,
-      currentPrice: currentPrice ?? this.currentPrice,
-      walletFk: walletFk ?? this.walletFk,
-      dateCreated: dateCreated ?? this.dateCreated,
-      dateTimeModified: dateTimeModified ?? this.dateTimeModified,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (investmentPk.present) {
-      map['investment_pk'] = Variable<String>(investmentPk.value);
-    }
-    if (name.present) {
-      map['name'] = Variable<String>(name.value);
-    }
-    if (type.present) {
-      final converter = $InvestmentsTable.$convertertype;
-      map['type'] = Variable<int>(converter.toSql(type.value));
-    }
-    if (quantity.present) {
-      map['quantity'] = Variable<double>(quantity.value);
-    }
-    if (purchasePrice.present) {
-      map['purchase_price'] = Variable<double>(purchasePrice.value);
-    }
-    if (currentPrice.present) {
-      map['current_price'] = Variable<double>(currentPrice.value);
-    }
-    if (walletFk.present) {
-      map['wallet_fk'] = Variable<String>(walletFk.value);
-    }
-    if (dateCreated.present) {
-      map['date_created'] = Variable<DateTime>(dateCreated.value);
-    }
-    if (dateTimeModified.present) {
-      map['date_time_modified'] = Variable<DateTime>(dateTimeModified.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('InvestmentsCompanion(')
-          ..write('investmentPk: $investmentPk, ')
-          ..write('name: $name, ')
-          ..write('type: $type, ')
-          ..write('quantity: $quantity, ')
-          ..write('purchasePrice: $purchasePrice, ')
-          ..write('currentPrice: $currentPrice, ')
-          ..write('walletFk: $walletFk, ')
-          ..write('dateCreated: $dateCreated, ')
-          ..write('dateTimeModified: $dateTimeModified')
           ..write(')'))
         .toString();
   }
@@ -7344,7 +6664,6 @@ abstract class _$FinanceDatabase extends GeneratedDatabase {
   late final $CategoriesTable categories = $CategoriesTable(this);
   late final $ObjectivesTable objectives = $ObjectivesTable(this);
   late final $TransactionsTable transactions = $TransactionsTable(this);
-  late final $InvestmentsTable investments = $InvestmentsTable(this);
   late final $BudgetsTable budgets = $BudgetsTable(this);
   late final $CategoryBudgetLimitsTable categoryBudgetLimits =
       $CategoryBudgetLimitsTable(this);
@@ -7363,7 +6682,6 @@ abstract class _$FinanceDatabase extends GeneratedDatabase {
         categories,
         objectives,
         transactions,
-        investments,
         budgets,
         categoryBudgetLimits,
         associatedTitles,
