@@ -1,5 +1,8 @@
 <h1 align="center" style="font-size:28px; line-height:1"><b>Cashew</b></h1>
 
+Hi my name is Matthew, I modified the project to fit my needs but the core project was made by jameskokoska and you can find his repo here: https://github.com/jameskokoska/Cashew/releases/
+My version contains an investments tab and all the investment are updated weekly (will be at full release). Due to the core project not being mine, nothing is monetized and the app is only available on Web.
+
 <a href="https://cashewapp.web.app/">
   <div align="center">
     <img alt="Icon" src="promotional/icons/icon.png" width="150px">
@@ -9,13 +12,7 @@
 <br />
 
 <div align="center">
-  <a href="https://apps.apple.com/us/app/cashew-expense-budget-tracker/id6463662930">
-    <img alt="iOS App Store Badge" src="promotional/store-banners/app-store-badge.png" height="60px">
-  </a>
-  <a href="https://play.google.com/store/apps/details?id=com.budget.tracker_app">
-    <img alt="Google Play Badge" src="promotional/store-banners/google-play-badge.png" height="60px">
-  </a>
-  <a href="https://github.com/jameskokoska/Cashew/releases/">
+  <a href="https://github.com/jurecki0/Cashew-Private/releases/">
     <img alt="GitHub Badge" src="promotional/store-banners/github-badge.png" height="60px">
   </a>
   <a href="https://budget-track.web.app/">
@@ -40,49 +37,6 @@ Cashew is a full-fledged, feature-rich application designed to empower users in 
 ---
 
 ## Features
-
-<a href="https://www.youtube.com/watch?v=Oar9pkc7BSc&t=235s">
-  <div align="center">
-    <img width="80%" src="promotional/youtube-promo/thumbnail-oss.png" alt="Review Video">
-  </div>
-</a>
-<p align="center">
-  Cashew was featured on <a href="https://www.youtube.com/watch?v=Oar9pkc7BSc&t=235s">YouTube</a> on 'The Best Free and Open Source Apps in 2024!' (and in the thumbnail!)
-</p>
-
-<br />
-
-<a href="https://www.youtube.com/watch?v=NYZd7IKn1oY&t=536s">
-  <div align="center">
-    <img width="80%" src="promotional/youtube-promo/thumbnail-year-best.png" alt="Review Video">
-  </div>
-</a>
-<p align="center">
-  Cashew was featured on <a href="https://www.youtube.com/watch?v=NYZd7IKn1oY&t=536s">YouTube</a> on 'The Best Apps of 2023!'
-</p>
-
-<br>
-
-<a href="https://www.youtube.com/watch?v=2MwWmqcn--s&t=261s">
-  <div align="center">
-    <img width="80%" src="promotional/youtube-promo/thumbnail.png" alt="Review Video">
-  </div>
-</a>
-<p align="center">
-  Cashew was featured on <a href="https://www.youtube.com/watch?v=2MwWmqcn--s&t=261s">YouTube</a> on 'Top Android Apps! (November 2023)'
-</p>
-
-<br>
-
-<div align="center">
-  <img width="80%" src="promotional/play-store-feature/play-store-feature.png" alt="Play Store Feature">
-</div>
-<p align="center">
-  Cashew was featured on <a href="https://play.google.com/store/apps/editorial?id=mc_apps_new_on_play_fcp">Google Play's Editorial 'New Apps We Love'</a> (November 2023)!
-</p>
-
-<br>
-
 <a href="https://github.com/nyas1/Material-You-app-list?tab=readme-ov-file#-economy:~:text=MDY%20Celenganku-,MDY%20Cashew,-MDY%20Allowance%20FOSS">
   <div align="center">
     <img width="80%" src="promotional/material-apps-feature/material-apps-feature.png" alt="Material Apps List Feature">
@@ -96,7 +50,7 @@ Cashew is a full-fledged, feature-rich application designed to empower users in 
 
 Check out the [official website](https://cashewapp.web.app/)!
 
-This application is available on the [App Store](https://apps.apple.com/us/app/cashew-expense-budget-tracker/id6463662930), [Google Play](https://play.google.com/store/apps/details?id=com.budget.tracker_app), [GitHub](https://github.com/jameskokoska/Cashew/releases/) and as a [Web App (PWA)](https://budget-track.web.app/).
+This application is available on the [Web App (PWA)](https://budget-track.web.app/), [GitHub](https://github.com/jameskokoska/Cashew/releases/).
 
 ### Changelog
 
@@ -179,9 +133,9 @@ See `JSON List of Transactions` below to view how the link is formatted.
 
 ### Routes
 
-| Routes for Android                          | Routes for Web App                             |
-| ------------------------------------------- | ---------------------------------------------- |
-| `https://cashewapp.web.app/[Endpoint here]` | `https://budget-track.web.app/[Endpoint here]` |
+| Routes for Web App                             |
+| ---------------------------------------------- |
+| `https://budget-track.web.app/[Endpoint here]` |
 
 ### Endpoints
 
@@ -347,12 +301,6 @@ Note: required Firebase.
 `update_translations.bat`
 
 - Downloads the latest version of Cashew translations. Runs `budget\assets\translations\generate-translations.py`
-
-### Develop Wirelessly on Android
-
-- `adb tcpip 5555`
-- `adb connect <IP>`
-- Get the phone's IP by going to `About Phone` > `Status Information` > `IP Address`
 
 ### Migrate Database
 
